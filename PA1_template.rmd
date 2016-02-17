@@ -1,9 +1,4 @@
----
-output: 
-  html_document: 
-    fig_caption: yes
-    keep_md: yes
----
+
 #Reproducible Research : Assignment1 
 
 This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
@@ -12,13 +7,13 @@ The data for this assignment can be downloaded from the course web site:
 
     Dataset: Activity monitoring data [52K]
 
-The variables included in this dataset are:
+    The variables included in this dataset are:
 
     steps: Number of steps taking in a 5-minute interval (missing values are coded as NA)
     date: The date on which the measurement was taken in YYYY-MM-DD format
     interval: Identifier for the 5-minute interval in which measurement was taken
 
-The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.
+    The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.
 
 ##loading library
 
@@ -26,6 +21,7 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 
 library(ggplot2)
 library(knitr)
+library(timeDate)
 ```
 
 
@@ -171,3 +167,57 @@ XNa_median
 ```
 
 #### We can Conclude that the mean before and after has no difference while the median value shows a slight change
+
+###Weekend and weekdays pattern
+
+```{r} 
+#Using  timeDate package/lib for helper
+library(timeDate)
+
+wkday <- sapply(steps_perday2$date, isWeekday)
+steps_perday2$Weekdays <- as.factor(wkday)
+head(steps_perday2)
+
+```
+
+
+####PATTERN AVERAGE PER INTERVAL :WEEKDAYS vs WEEKEND PATTERN
+```{r}
+wkday <- sapply(datasource_xNA$date, isWeekday)
+datasource_xNA$Weekdays <- as.factor(wkday)
+head(datasource_xNA)
+str(datasource_xNA)
+
+
+
+steps_weekdays_pattern <- subset(datasource_xNA,  datasource_xNA$Weekdays==TRUE) 
+head(steps_weekdays_pattern)
+
+steps_weekEnds_pattern <- subset(datasource_xNA,  datasource_xNA$Weekdays==FALSE)
+head(steps_weekEnds_pattern)
+
+
+
+#### Weekdays PAttern : Aggregating interval and steps for Plotting
+steps_weekdays_pattern <- aggregate(list(steps=steps_weekdays_pattern$steps), by=list(interval=as.integer(steps_weekdays_pattern$interval)), FUN=mean,na.rm=TRUE)
+
+
+#### Weekdays PAttern : Aggregating interval and steps for Plotting
+steps_weekEnds_pattern <- aggregate(list(steps=steps_weekEnds_pattern$steps),   by=list(interval=as.integer(steps_weekEnds_pattern$interval)), FUN=mean,na.rm=TRUE)
+
+```
+
+####Plotting Timeseries for Weekdays PAttern
+
+```{r}
+plot(steps_weekdays_pattern$interval, 
+     steps_weekdays_pattern$steps,
+     xlab="5 minutes intervals", ylab="Average steps per Interval on Weekdays",type="l")
+
+
+plot(steps_weekEnds_pattern$interval, 
+     steps_weekEnds_pattern$steps,
+     xlab="5 minutes intervals", ylab="Average steps per Interval on WeekEnds",type="l")
+```
+
+Based On The Plots above we can see a consistently more active steps/activities througout the Weekend compared to weekdays 
