@@ -99,3 +99,75 @@ maximum_steps <- max(steps_per_interval$steps)
 max_interval <- steps_per_interval[steps_per_interval$steps==maximum_steps,]
 max_interval
 ```
+
+```{r}
+#### Missing Values
+NA_count <- nrow(subset(datasource, is.na(datasource$steps)))
+NA_count
+
+```
+
+#### Missing Value Replacement Strategy (Using Mean)
+
+```{r}
+#### creating new dataframe from original copy
+datasource_xNA <- datasource
+
+#####extract index of NAs
+indexNa <- is.na(datasource_xNA$steps)
+
+
+#####calculate avg for the interval
+avg <- tapply(datasource$steps, datasource$interval, mean, na.rm=TRUE, simplify=T)
+
+#####Replace missing steps (NA) with avg value
+datasource_xNA$steps[indexNa] <- avg[as.character(datasource_xNA$interval[indexNa])]
+
+
+#####Verifying no NA
+NA_count <- nrow(subset(datasource_xNA, is.na(datasource_xNA$steps)))
+NA_count
+```
+
+#### After NA conversion to MEan :
+####Accumulating total step/day and creating day vs step_perday table 
+
+```{r}
+steps_perday2 <- aggregate(steps ~ date, datasource_xNA, sum)
+colnames(steps_perday) <- c("date","steps")
+head(steps_perday)
+```
+
+
+#### Drawing Histogram for total steps/day
+```{r}
+
+hist(x=steps_perday2$steps ,col="green",breaks=20,xlab="Total Steps/Day",
+     ylab="Frequency",
+     main="The Distribution of Total Steps/Day (NA=mean)")
+
+```
+
+
+###Mean and Median Compared (Before vs after NA replacement)
+
+
+#### Mean (with NA vs without NA) 
+```{r}
+NA_mean <- mean(steps_perday$steps, na.rm=TRUE)
+NA_mean
+
+
+XNA_mean <- mean(steps_perday2$steps, na.rm=TRUE)
+XNA_mean
+```
+
+#### Median (with NA) vs Median (with NA=Mean)
+```{r}
+Na_median <- median(steps_perday$steps, na.rm=TRUE)
+Na_median
+XNa_median <- median(steps_perday2$steps, na.rm=TRUE)
+XNa_median
+```
+
+#### We can Conclude that the mean before and after has no difference while the median value shows a slight change

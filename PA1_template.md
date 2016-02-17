@@ -138,3 +138,118 @@ max_interval
 ##     interval    steps
 ## 104      104 206.1698
 ```
+
+
+```r
+#### Missing Values
+NA_count <- nrow(subset(datasource, is.na(datasource$steps)))
+NA_count
+```
+
+```
+## [1] 2304
+```
+
+#### Missing Value Replacement Strategy (Using Mean)
+
+
+```r
+#### creating new dataframe from original copy
+datasource_xNA <- datasource
+
+#####extract index of NAs
+indexNa <- is.na(datasource_xNA$steps)
+
+
+#####calculate avg for the interval
+avg <- tapply(datasource$steps, datasource$interval, mean, na.rm=TRUE, simplify=T)
+
+#####Replace missing steps (NA) with avg value
+datasource_xNA$steps[indexNa] <- avg[as.character(datasource_xNA$interval[indexNa])]
+
+
+#####Verifying no NA
+NA_count <- nrow(subset(datasource_xNA, is.na(datasource_xNA$steps)))
+NA_count
+```
+
+```
+## [1] 0
+```
+
+#### After NA conversion to MEan :
+####Accumulating total step/day and creating day vs step_perday table 
+
+
+```r
+steps_perday2 <- aggregate(steps ~ date, datasource_xNA, sum)
+colnames(steps_perday) <- c("date","steps")
+head(steps_perday)
+```
+
+```
+##         date steps
+## 1 2012-10-02   126
+## 2 2012-10-03 11352
+## 3 2012-10-04 12116
+## 4 2012-10-05 13294
+## 5 2012-10-06 15420
+## 6 2012-10-07 11015
+```
+
+
+#### Drawing Histogram for total steps/day
+
+```r
+hist(x=steps_perday2$steps ,col="green",breaks=20,xlab="Total Steps/Day",
+     ylab="Frequency",
+     main="The Distribution of Total Steps/Day (NA=mean)")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+
+
+###Mean and Median Compared (Before vs after NA replacement)
+
+
+#### Mean (with NA vs without NA) 
+
+```r
+NA_mean <- mean(steps_perday$steps, na.rm=TRUE)
+NA_mean
+```
+
+```
+## [1] 10766.19
+```
+
+```r
+XNA_mean <- mean(steps_perday2$steps, na.rm=TRUE)
+XNA_mean
+```
+
+```
+## [1] 10766.19
+```
+
+#### Median (with NA) vs Median (with NA=Mean)
+
+```r
+Na_median <- median(steps_perday$steps, na.rm=TRUE)
+Na_median
+```
+
+```
+## [1] 10765
+```
+
+```r
+XNa_median <- median(steps_perday2$steps, na.rm=TRUE)
+XNa_median
+```
+
+```
+## [1] 10766.19
+```
+
+#### We can Conclude that the mean before and after has no difference while the median value shows a slight change
